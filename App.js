@@ -5,6 +5,8 @@ const FindTheBallGame = () => {
   // Define our state variables
   const [cups, setCups] = useState([false, false, false]); // false indicates no ball, true indicates ball
   const [result, setResult] = useState('');
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [highScore, setHighScore] = useState(0);
 
   // Function to handle player's selection
   const handleCupPress = (index) => {
@@ -16,8 +18,14 @@ const FindTheBallGame = () => {
     // Update the cups state and set the result message
     setCups(newCups);
     if (index === randomIndex) {
+      const newConsecutiveCorrect = consecutiveCorrect + 1;
+      setConsecutiveCorrect(newConsecutiveCorrect);
+      if (newConsecutiveCorrect > highScore) {
+        setHighScore(newConsecutiveCorrect);
+      }
       setResult('Congratulations! You found the ball!');
     } else {
+      setConsecutiveCorrect(0);
       setResult('Sorry, you lost. Try again!');
     }
   };
@@ -36,7 +44,8 @@ const FindTheBallGame = () => {
           <Text style={styles.cupText}>{cups[2] ? '🏀' : ''}</Text>
         </TouchableOpacity>
       </View>
-      {result ? <Text style={styles.result}>{result}</Text> : null}
+      <Text style={styles.result}>{result}</Text>
+      <Text style={styles.score}>High Score: {highScore}</Text>
     </View>
   );
 };
@@ -63,6 +72,10 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   result: {
+    fontSize: 20,
+    marginTop: 20,
+  },
+  score: {
     fontSize: 20,
     marginTop: 20,
   },
