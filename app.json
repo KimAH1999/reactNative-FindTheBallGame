@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "findtheballgame",
+    "slug": "findtheballgame",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "findtheballgame"
+}
