@@ -68,14 +68,14 @@ const FindTheBallGame = () => {
     setConsecutiveCorrect(0);
   };
 
-  const resetNewGame = (difficultyLevel) => {
-    const newCups = generateRandomCups(difficultyLevel);
+  const resetNewGame = (selectedDifficultyLevel) => {
+    setDifficultyLevel(selectedDifficultyLevel); // Set the difficulty level
+    const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
     setResult('');// Clear result
     shuffleBall();// Shuffle the ball to a different cup
   };
-  
-    
+     
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cup: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: '#CC0000',
     padding: 40,
     borderRadius: 60,
   },
