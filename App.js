@@ -33,7 +33,7 @@ const FindTheBallGame = () => {
   
   // Function to generate random cups based on difficulty level and return the index of the cup with the ball
   const generateRandomCups = (difficultyLevel) => {
-    const difficultyLevels = {easy: 3, normal: 4, hard: 5, expert: 6};
+    const difficultyLevels = {easy: 2, normal: 3, hard: 4, expert: 5};
     const numberOfCups = difficultyLevels[difficultyLevel];
     const randomIndex = Math.floor(Math.random() * numberOfCups);
     setBallIndex(randomIndex); // Set the index of '🏀' in the cup for testing highscore
@@ -128,9 +128,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cup: {
-    backgroundColor: '#CC0000',
-    padding: 40,
-    borderRadius: 60,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    backgroundColor: 'red',
+    borderColor: 'black',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   cupText: {
     fontSize: 30,
