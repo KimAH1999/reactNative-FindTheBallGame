@@ -33,7 +33,7 @@ const FindTheBallGame = () => {
   
   // Function to generate random cups based on difficulty level and return the index of the cup with the ball
   const generateRandomCups = (difficultyLevel) => {
-    const difficultyLevels = {easy: 2, normal: 3, hard: 4, expert: 5};
+    const difficultyLevels = {easy: 3, normal: 4, hard: 5, expert: 6};
     const numberOfCups = difficultyLevels[difficultyLevel];
     const randomIndex = Math.floor(Math.random() * numberOfCups);
     setBallIndex(randomIndex); // Set the index of '🏀' in the cup for testing highscore
