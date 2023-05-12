@@ -40,10 +40,11 @@ Available to be reached through Linkedin, Slack, and personal email which is ava
 To run tests, run the following command:
 
 ```
-node index.js
+expo start
 ```
 
 ## Questions
 
 If you have any questions about the repo, open an issue or contact me directly at kimaguilar2017@gmail.com. You can find more of my work at [KimAH1999](https://github.com/KimAH1999/).
+
 
