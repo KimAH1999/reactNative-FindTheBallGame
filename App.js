@@ -1,90 +1,83 @@
 //
 //
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, AsyncStorage } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 const FindTheBallGame = () => {
   // Define our state variables
-  const [cups, setCups] = useState([]);
+  const [cups, setCups] = useState(['', '', '']);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [highScore, setHighScore] = useState(0);
-  const [ballIndex, setBallIndex] = useState(null); // New state variable to keep track of the cup with the ball
+  const [ballIndex, setBallIndex] = useState(null);
   const [difficultyLevel, setDifficultyLevel] = useState('');
 
-  // Function to shuffle the ball to a different cup
-  const shuffleBall = () => {
-    const newCups = [...cups];
-    let currentBallIndex = ballIndex;
-    let newBallIndex = Math.floor(Math.random() * newCups.length);
-
-    // Make sure the new ball index is different from the current ball index
-    while (newBallIndex === currentBallIndex) {
-      newBallIndex = Math.floor(Math.random() * newCups.length);
-    }
-
-    // Shuffle the ball to the new cup
-    newCups[currentBallIndex] = false;
-    newCups[newBallIndex] = true;
-    setBallIndex(newBallIndex);
-
+ // Start a new game with the selected difficulty level
+  const startNewGame = (selectedDifficultyLevel) => {
+    setDifficultyLevel(selectedDifficultyLevel);
+    const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
+    setResult('');
+    setConsecutiveCorrect(0);
+    setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
   };
-  
-  // Function to generate random cups based on difficulty level and return the index of the cup with the ball
+
   const generateRandomCups = (difficultyLevel) => {
     const difficultyLevels = {easy: 3, normal: 4, hard: 5, expert: 6};
     const numberOfCups = difficultyLevels[difficultyLevel];
     const randomIndex = Math.floor(Math.random() * numberOfCups);
-    setBallIndex(randomIndex); // Set the index of '🏀' in the cup for testing highscore
+    
     const newCups = new Array(numberOfCups).fill(false);
-    newCups[randomIndex] = true; // Set the cup with the ball to true
+    newCups[randomIndex] = true;
     return newCups;
   };
-  
-  // Function to handle player's selection
+
   const handleCupPress = (index) => {
-    if (cups[index]) { // Check if the cup has the ball
-      shuffleBall(); // Shuffle the ball to a different cup
+    if (cups[index]) {
+      
       const newConsecutiveCorrect = consecutiveCorrect + 1;
       setConsecutiveCorrect(newConsecutiveCorrect);
+  
       if (newConsecutiveCorrect > highScore) {
         setHighScore(newConsecutiveCorrect);
       }
-      setResult(`Congratulations! You found the ball in cup ${index + 1}!`);
-   
+      setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
+      setCups(prevCups => {
+        const newCups = [...prevCups];
+        newCups[ballIndex] = false; // set the value of cups[ballIndex] to false to hide the ball
+        newCups[index] = true; 
+        setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
+        return newCups;
+      });
     } else {
       setConsecutiveCorrect(0);
-      setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`); // Display the index of the cup with the ball
-      setCups(new Array(cups.length).fill(false)); // Show all cups to try again
+      setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`);
+      const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
+      newCups[ballIndex] = true;
+      setCups(newCups);
     }
-  };
-
-  // Function to start a new game with the selected difficulty level
-  const startNewGame = (difficultyLevel) => {
-    const newCups = generateRandomCups(difficultyLevel);
-    setCups(newCups);
-    setResult('');
-    setConsecutiveCorrect(0);
-  };
-
-  const resetNewGame = (selectedDifficultyLevel) => {
-    setDifficultyLevel(selectedDifficultyLevel); // Set the difficulty level
-    const newCups = generateRandomCups(selectedDifficultyLevel);
-    setCups(newCups);
-    setResult('');// Clear result
-    shuffleBall();// Shuffle the ball to a different cup
-  };
-     
+  };  
+  
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
+      <Text style={styles.title}>Find the Ball Game</Text>
+      <Text style={styles.subtitle}>Choose a game level to start challenging your guessing game to find the ball.</Text>
       <View style={styles.cupRow}>
-        {cups.map((cup, index) => (
-          <TouchableOpacity key={index} style={styles.cup} onPress={() => handleCupPress(index)}>
-            <Text style={styles.cupText}>{index === ballIndex ? '🏀' : ''}</Text>
-          </TouchableOpacity>
-        ))}
+        {cups?.map((cup, index) => {
+          const isBall = index === ballIndex;
+          return (
+            <TouchableOpacity key={index} onPress={() => handleCupPress(index)}>
+              <Animatable.View style={[styles.cup]}>
+                {isBall ? (
+                  <Text>🟡</Text>
+                ) : (
+                  <Text>{cup}</Text>
+                )}
+              </Animatable.View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.button} onPress={() => startNewGame('easy')}>
@@ -99,13 +92,8 @@ const FindTheBallGame = () => {
         <TouchableOpacity style={styles.button} onPress={() => startNewGame('expert')}>
           <Text style={styles.buttonText}>Expert</Text>
         </TouchableOpacity>
-        {result && (
-          <TouchableOpacity style={styles.button} onPress={() => resetNewGame(difficultyLevel)}>
-            <Text style={styles.buttonText}>Reset</Text>
-          </TouchableOpacity>
-        )}
       </View>
-      <View style={styles.resultRow}>
+        <View style={styles.resultRow}>
         <Text style={styles.resultText}>{result}</Text>
         <Text style={styles.resultText}>High Score: {highScore}</Text>
         <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
@@ -117,15 +105,34 @@ const FindTheBallGame = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  title: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    borderWidth: 3,
+    borderColor: 'yellow',
+    backgroundColor: 'maroon',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: 'black',
+    color: 'white',
+    padding: 50,
+    zIndex: 2,
   },
   cupRow: {
+    position: 'fixed',
+    marginTop: -140,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    zIndex: 1,
   },
   cup: {
     width: 80,
@@ -136,6 +143,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -145,40 +153,30 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
-  cupText: {
-    fontSize: 30,
-  },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 30,
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: 'maroon',
     padding: 10,
     borderRadius: 5,
+    margin: 5,
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFF',
     fontSize: 20,
   },
   resultRow: {
+    marginTop: 10,
     alignItems: 'center',
   },
   resultText: {
     fontSize: 20,
     marginBottom: 10,
   },
-  resetButton: {
-    backgroundColor: '#1E90FF',
-    padding: 8,
-    borderRadius: 5,
-  },
-  resetButtonText: {
-    color: '#fff',
-    fontSize: 20,
-  },  
 });
 
 export default FindTheBallGame;
