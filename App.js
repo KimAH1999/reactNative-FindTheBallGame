@@ -110,13 +110,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   title: {
+    position: 'absolute',
+    top: 170,
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'center',
     borderWidth: 3,
     borderColor: 'yellow',
     backgroundColor: 'maroon',
-    marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
@@ -128,8 +130,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   cupRow: {
-    position: 'fixed',
-    marginTop: -140,
+    marginTop: -50,
     flexDirection: 'row',
     justifyContent: 'center',
     zIndex: 1,
@@ -143,6 +144,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -30,
     marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: {
