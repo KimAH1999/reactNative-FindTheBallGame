@@ -8,6 +8,7 @@ const FindTheBallGame = () => {
   // Define our state variables
   const [cups, setCups] = useState(['', '', '']);
   const [showSubtitle, setShowSubtitle] = useState(true);
+  const [showBall, setShowBall] = useState(false);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -37,13 +38,14 @@ const FindTheBallGame = () => {
 
   const handleCupPress = (index) => {
     if (cups[index]) {
-      
       const newConsecutiveCorrect = consecutiveCorrect + 1;
       setConsecutiveCorrect(newConsecutiveCorrect);
-  
+      
       if (newConsecutiveCorrect > highScore) {
         setHighScore(newConsecutiveCorrect);
       }
+      
+      setShowBall(true);
       setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
       setCups(prevCups => {
         const newCups = [...prevCups];
@@ -54,6 +56,7 @@ const FindTheBallGame = () => {
       });
     } else {
       setConsecutiveCorrect(0);
+      setShowBall(true);
       setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`);
       const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
       newCups[ballIndex] = true;
@@ -74,7 +77,7 @@ const FindTheBallGame = () => {
           return (
             <TouchableOpacity key={index} onPress={() => handleCupPress(index)}>
               <Animatable.View style={[styles.cup]}>
-                {isBall ? (
+                {showBall && isBall ? (
                   <Text>🟡</Text>
                 ) : (
                   <Text>{cup}</Text>
