@@ -7,6 +7,7 @@ import * as Animatable from 'react-native-animatable';
 const FindTheBallGame = () => {
   // Define our state variables
   const [cups, setCups] = useState(['', '', '']);
+  const [showSubtitle, setShowSubtitle] = useState(true);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -18,6 +19,7 @@ const FindTheBallGame = () => {
     setDifficultyLevel(selectedDifficultyLevel);
     const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
+    setShowSubtitle(false);
     setResult('');
     setConsecutiveCorrect(0);
     setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
@@ -62,7 +64,10 @@ const FindTheBallGame = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Find the Ball Game</Text>
-      <Text style={styles.subtitle}>Choose a game level to start challenging your guessing game to find the ball.</Text>
+      {showSubtitle && (
+      <Text style={styles.subtitle}>
+        Choose a game level to start challenging your guessing game to find the ball.</Text>
+      )}
       <View style={styles.cupRow}>
         {cups?.map((cup, index) => {
           const isBall = index === ballIndex;
@@ -105,13 +110,12 @@ const FindTheBallGame = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
   title: {
-    position: 'absolute',
-    top: 170,
+    marginBottom: 80,
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
@@ -121,6 +125,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'maroon',
   },
   subtitle: {
+    marginTop: 0,
+    marginBottom: -80,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -130,9 +136,10 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   cupRow: {
-    marginTop: -50,
+    marginTop: 45,
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
   cup: {
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -30,
+    marginTop: -50,
     marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -159,7 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 50,
   },
   button: {
     backgroundColor: 'maroon',
