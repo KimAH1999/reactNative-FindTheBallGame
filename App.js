@@ -13,9 +13,53 @@ const FindTheBallGame = () => {
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [ballIndex, setBallIndex] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState('');
 
- // Start a new game with the selected difficulty level
+
+  const handleCupPress = (index) => {
+    if (gameOver) {
+      return; // Disable cup press functionality when the game is over
+    }
+
+    if (cups[index]) {
+      const newConsecutiveCorrect = consecutiveCorrect + 1;
+      setConsecutiveCorrect(newConsecutiveCorrect);
+      
+      if (newConsecutiveCorrect > highScore) {
+        setHighScore(newConsecutiveCorrect);
+      }
+
+      setShowBall(true);
+      setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
+      setCups(prevCups => {
+        const newCups = [...prevCups];
+        newCups[ballIndex] = false; // set the value of cups[ballIndex] to false to hide the ball
+        newCups[index] = true; 
+        setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
+        return newCups;
+      });
+      setTimeout(() => {
+        const newCups = generateRandomCups(difficultyLevel); // Generate new cups with a random ball index
+        setCups(newCups);
+        setBallIndex(newCups.indexOf(true));
+        setShowBall(false);
+      }, 1000);
+      
+      
+    } else {
+      setConsecutiveCorrect(0);
+      setShowBall(true);
+      setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`);
+      const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
+      newCups[ballIndex] = true;
+      setCups(newCups);
+      setGameOver(true); // Set the game over flag to true
+      
+    }
+  }; 
+
+  // Start a new game with the selected difficulty level
   const startNewGame = (selectedDifficultyLevel) => {
     setDifficultyLevel(selectedDifficultyLevel);
     const newCups = generateRandomCups(selectedDifficultyLevel);
@@ -24,6 +68,13 @@ const FindTheBallGame = () => {
     setResult('');
     setConsecutiveCorrect(0);
     setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
+    setGameOver(false);
+
+    // Show the ball briefly after starting a new game
+    setShowBall(true);
+    setTimeout(() => {
+      setShowBall(false);
+    }, 1000);
   };
 
   const generateRandomCups = (difficultyLevel) => {
@@ -35,34 +86,6 @@ const FindTheBallGame = () => {
     newCups[randomIndex] = true;
     return newCups;
   };
-
-  const handleCupPress = (index) => {
-    if (cups[index]) {
-      const newConsecutiveCorrect = consecutiveCorrect + 1;
-      setConsecutiveCorrect(newConsecutiveCorrect);
-      
-      if (newConsecutiveCorrect > highScore) {
-        setHighScore(newConsecutiveCorrect);
-      }
-      
-      setShowBall(true);
-      setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
-      setCups(prevCups => {
-        const newCups = [...prevCups];
-        newCups[ballIndex] = false; // set the value of cups[ballIndex] to false to hide the ball
-        newCups[index] = true; 
-        setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
-        return newCups;
-      });
-    } else {
-      setConsecutiveCorrect(0);
-      setShowBall(true);
-      setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`);
-      const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
-      newCups[ballIndex] = true;
-      setCups(newCups);
-    }
-  };  
   
   return (
     <View style={styles.container}>
