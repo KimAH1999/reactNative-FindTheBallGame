@@ -1,7 +1,8 @@
 //
 //
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 
 const FindTheBallGame = () => {
@@ -15,9 +16,28 @@ const FindTheBallGame = () => {
   const [ballIndex, setBallIndex] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState('');
+  const [timer, setTimer] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerInterval, setTimerInterval] = useState(null);
 
+  useEffect(() => {
+    if (gameOver) {
+      setIsTimerRunning(false);
+      clearInterval(timerInterval);
+    }
+  }, [gameOver]);
 
-  const handleCupPress = (index) => {
+  const startTimer = () => {
+    setTimer(0); // Reset the timer
+    setIsTimerRunning(true);
+    const interval = setInterval(() => {
+      setTimer(prevTimer => prevTimer + 1);
+    }, 1000);
+    // Store the interval ID to clear the interval later
+    setTimerInterval(interval);
+  };  
+
+  const handleCupPress = async(index) => {
     if (gameOver) {
       return; // Disable cup press functionality when the game is over
     }
@@ -28,6 +48,12 @@ const FindTheBallGame = () => {
       
       if (newConsecutiveCorrect > highScore) {
         setHighScore(newConsecutiveCorrect);
+    
+        try {
+          await saveHighScore(difficultyLevel, newConsecutiveCorrect);
+        } catch (error) {
+          console.log('Error saving high score:', error);
+        }
       }
 
       setShowBall(true);
@@ -45,8 +71,6 @@ const FindTheBallGame = () => {
         setBallIndex(newCups.indexOf(true));
         setShowBall(false);
       }, 1000);
-      
-      
     } else {
       setConsecutiveCorrect(0);
       setShowBall(true);
@@ -59,18 +83,40 @@ const FindTheBallGame = () => {
     }
   }; 
 
+  const saveHighScore = (difficultyLevel, score) => {
+    return new Promise((resolve, reject) => {
+      AsyncStorage.setItem(difficultyLevel, score.toString())
+      AsyncStorage.getItem(selectedDifficultyLevel)
+        .then(() => {
+          resolve();
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  };
+
   // Start a new game with the selected difficulty level
-  const startNewGame = (selectedDifficultyLevel) => {
+  const startNewGame = async (selectedDifficultyLevel) => {
     setDifficultyLevel(selectedDifficultyLevel);
     const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
+    startTimer();
     setShowSubtitle(false);
     setResult('');
     setConsecutiveCorrect(0);
-    setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
+    setBallIndex(newCups.indexOf(true));
     setGameOver(false);
-
-    // Show the ball briefly after starting a new game
+  
+    try {
+      const storedHighScore = await AsyncStorage.getItem(selectedDifficultyLevel);
+      if (storedHighScore !== null) {
+        setHighScore(parseInt(storedHighScore));
+      }
+    } catch (error) {
+      console.log('Error retrieving high score:', error);
+    }
+  
     setShowBall(true);
     setTimeout(() => {
       setShowBall(false);
@@ -124,6 +170,7 @@ const FindTheBallGame = () => {
           <Text style={styles.buttonText}>Expert</Text>
         </TouchableOpacity>
       </View>
+        <Text style={styles.resultText}>Time: {timer}</Text>
         <View style={styles.resultRow}>
         <Text style={styles.resultText}>{result}</Text>
         <Text style={styles.resultText}>High Score: {highScore}</Text>
