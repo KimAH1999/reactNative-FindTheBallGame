@@ -10,9 +10,15 @@ const FindTheBallGame = () => {
   const [cups, setCups] = useState(['', '', '']);
   const [showSubtitle, setShowSubtitle] = useState(true);
   const [showBall, setShowBall] = useState(false);
+  const [showBallTimeout, setShowBallTimeout] = useState(null);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScores, setHighScores] = useState({
+    easy: 0,
+    normal: 0,
+    hard: 0,
+    expert: 0,
+  });
   const [ballIndex, setBallIndex] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState('');
@@ -41,13 +47,15 @@ const FindTheBallGame = () => {
     if (gameOver) {
       return; // Disable cup press functionality when the game is over
     }
-
+    // Win or Lose logic
     if (cups[index]) {
       const newConsecutiveCorrect = consecutiveCorrect + 1;
       setConsecutiveCorrect(newConsecutiveCorrect);
       
-      if (newConsecutiveCorrect > highScore) {
-        setHighScore(newConsecutiveCorrect);
+      if (newConsecutiveCorrect > highScores[difficultyLevel]) {
+        const newHighScores = { ...highScores };
+        newHighScores[difficultyLevel] = newConsecutiveCorrect;
+        setHighScores(newHighScores);
     
         try {
           await saveHighScore(difficultyLevel, newConsecutiveCorrect);
@@ -73,20 +81,26 @@ const FindTheBallGame = () => {
       }, 1000);
     } else {
       setConsecutiveCorrect(0);
-      setShowBall(true);
       setResult(`Sorry, you lost. The ball was under cup ${ballIndex + 1}.`);
       const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
       newCups[ballIndex] = true;
       setCups(newCups);
       setGameOver(true); // Set the game over flag to true
-      
+      setIsTimerRunning(false); // Stop the timer
+      clearInterval(timerInterval); // Clear the timer interval
+
+      // Show the ball for 1 second before hiding it
+      setShowBall(true);
+      const timeout = setTimeout(() => {
+        setShowBall(false);
+      }, 1000);
+      setShowBallTimeout(timeout);
     }
-  }; 
+  };
 
   const saveHighScore = (difficultyLevel, score) => {
     return new Promise((resolve, reject) => {
       AsyncStorage.setItem(difficultyLevel, score.toString())
-      AsyncStorage.getItem(selectedDifficultyLevel)
         .then(() => {
           resolve();
         })
@@ -111,7 +125,10 @@ const FindTheBallGame = () => {
     try {
       const storedHighScore = await AsyncStorage.getItem(selectedDifficultyLevel);
       if (storedHighScore !== null) {
-        setHighScore(parseInt(storedHighScore));
+        setHighScores(prevHighScores => ({
+          ...prevHighScores,
+          [selectedDifficultyLevel]: parseInt(storedHighScore),
+        }));
       }
     } catch (error) {
       console.log('Error retrieving high score:', error);
@@ -170,10 +187,10 @@ const FindTheBallGame = () => {
           <Text style={styles.buttonText}>Expert</Text>
         </TouchableOpacity>
       </View>
-        <Text style={styles.resultText}>Time: {timer}</Text>
+        <Text style={styles.resultText}>Time: {timer} seconds</Text>
         <View style={styles.resultRow}>
         <Text style={styles.resultText}>{result}</Text>
-        <Text style={styles.resultText}>High Score: {highScore}</Text>
+        <Text style={styles.resultText}>High Score: {highScores[difficultyLevel]}</Text>
         <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
       </View>
     </View>
