@@ -10,15 +10,10 @@ const FindTheBallGame = () => {
   const [cups, setCups] = useState(['', '', '']);
   const [showSubtitle, setShowSubtitle] = useState(true);
   const [showBall, setShowBall] = useState(false);
-  const [showBallTimeout, setShowBallTimeout] = useState(null);
+  const [setShowBallTimeout] = useState(null);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
-  const [highScores, setHighScores] = useState({
-    easy: 0,
-    normal: 0,
-    hard: 0,
-    expert: 0,
-  });
+  const [highScores, setHighScores] = useState({easy: 0,normal: 0,hard: 0,expert: 0,});
   const [ballIndex, setBallIndex] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState('');
@@ -27,6 +22,7 @@ const FindTheBallGame = () => {
   const [timerInterval, setTimerInterval] = useState(null);
 
   useEffect(() => {
+    console.log('Timer is running:', isTimerRunning);
     if (gameOver) {
       setIsTimerRunning(false);
       clearInterval(timerInterval);
@@ -192,6 +188,7 @@ const FindTheBallGame = () => {
         <Text style={styles.resultText}>{result}</Text>
         <Text style={styles.resultText}>High Score: {highScores[difficultyLevel]}</Text>
         <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
+       
       </View>
     </View>
   );
