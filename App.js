@@ -1,6 +1,6 @@
 //
 //
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
@@ -10,35 +10,44 @@ const FindTheBallGame = () => {
   const [cups, setCups] = useState(['', '', '']);
   const [showSubtitle, setShowSubtitle] = useState(true);
   const [showBall, setShowBall] = useState(false);
-  const [setShowBallTimeout] = useState(null);
+  const [showBallTimeout, setShowBallTimeout] = useState(null);
   const [result, setResult] = useState('');
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
-  const [highScores, setHighScores] = useState({easy: 0,normal: 0,hard: 0,expert: 0,});
+  const [highScores, setHighScores] = useState({
+    easy: { score: 0, time: 0 },
+    normal: { score: 0, time: 0 },
+    hard: { score: 0, time: 0 },
+    expert: { score: 0, time: 0 },
+  });
   const [ballIndex, setBallIndex] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [difficultyLevel, setDifficultyLevel] = useState('');
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerInterval, setTimerInterval] = useState(null);
+  const updatedTimerScore = `${timer} seconds`;
 
   useEffect(() => {
-    console.log('Timer is running:', isTimerRunning);
     if (gameOver) {
       setIsTimerRunning(false);
       clearInterval(timerInterval);
     }
-  }, [gameOver]);
+  }, [gameOver, timerInterval]);
 
   const startTimer = () => {
-    setTimer(0); // Reset the timer
-    setIsTimerRunning(true);
-    const interval = setInterval(() => {
-      setTimer(prevTimer => prevTimer + 1);
-    }, 1000);
-    // Store the interval ID to clear the interval later
-    setTimerInterval(interval);
-  };  
-
+    if (!isTimerRunning) {
+      setTimer(0);
+      setIsTimerRunning(true);
+      const interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer + 1);
+      }, 1000);
+      setTimerInterval(interval);
+    } else {
+      setIsTimerRunning(false);
+      clearInterval(timerInterval);
+    }
+  };
+ 
   const handleCupPress = async(index) => {
     if (gameOver) {
       return; // Disable cup press functionality when the game is over
@@ -48,9 +57,9 @@ const FindTheBallGame = () => {
       const newConsecutiveCorrect = consecutiveCorrect + 1;
       setConsecutiveCorrect(newConsecutiveCorrect);
       
-      if (newConsecutiveCorrect > highScores[difficultyLevel]) {
+      if (newConsecutiveCorrect > highScores[difficultyLevel].score) {
         const newHighScores = { ...highScores };
-        newHighScores[difficultyLevel] = newConsecutiveCorrect;
+        newHighScores[difficultyLevel].score = newConsecutiveCorrect;
         setHighScores(newHighScores);
     
         try {
@@ -123,7 +132,10 @@ const FindTheBallGame = () => {
       if (storedHighScore !== null) {
         setHighScores(prevHighScores => ({
           ...prevHighScores,
-          [selectedDifficultyLevel]: parseInt(storedHighScore),
+          [selectedDifficultyLevel]: {
+            ...prevHighScores[selectedDifficultyLevel],
+            score: parseInt(storedHighScore),
+          },
         }));
       }
     } catch (error) {
@@ -186,9 +198,8 @@ const FindTheBallGame = () => {
         <Text style={styles.resultText}>Time: {timer} seconds</Text>
         <View style={styles.resultRow}>
         <Text style={styles.resultText}>{result}</Text>
-        <Text style={styles.resultText}>High Score: {highScores[difficultyLevel]}</Text>
+        <Text style={styles.resultText}>High Score: {highScores[difficultyLevel]?.score} ({isTimerRunning ? `${timer} seconds` : '0 seconds'})</Text>
         <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
-       
       </View>
     </View>
   );
