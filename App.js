@@ -87,24 +87,24 @@ const FindTheBallGame = () => {
     // Win or Lose logic
     if (cups[index]) {
       const newConsecutiveCorrect = consecutiveCorrect + 1;
-      setConsecutiveCorrect(newConsecutiveCorrect);
-
-      if (newConsecutiveCorrect > highScores[difficultyLevel].score || timer < highScores[difficultyLevel].time) {
-        const updatedHighScore = {
-          score: newConsecutiveCorrect,
-          time: isTimerRunning ? timer : highScores[difficultyLevel].time,
-        };
+  
+      if (newConsecutiveCorrect > highScores[difficultyLevel]?.score) {
         setHighScores((prevHighScores) => ({
           ...prevHighScores,
-          [difficultyLevel]: updatedHighScore,
+          [difficultyLevel]: {
+            score: newConsecutiveCorrect,
+            time: isTimerRunning ? timer : highScores[difficultyLevel]?.time,
+          },
         }));
+  
         try {
-          await saveHighScore(difficultyLevel, updatedHighScore.score, updatedHighScore.time);
+          await saveHighScore(difficultyLevel, newConsecutiveCorrect, isTimerRunning ? timer : highScores[difficultyLevel]?.time);
         } catch (error) {
           console.log('Error saving high score:', error);
         }
       }
 
+      setConsecutiveCorrect(newConsecutiveCorrect);  
       setShowBall(true);
       setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
       setCups((prevCups) => {
@@ -136,40 +136,63 @@ const FindTheBallGame = () => {
     }
   };
 
-  const saveHighScore = async (difficultyLevel, score, time, consecutiveCorrect) => {
+  const saveHighScore = async (difficultyLevel, score, time) => {
     try {
       const storedHighScores = await AsyncStorage.getItem('highScores');
       if (storedHighScores !== null) {
         const parsedHighScores = JSON.parse(storedHighScores);
         const selectedHighScore = parsedHighScores[difficultyLevel];
         if (selectedHighScore) {
-          const { score, time: existingTime } = selectedHighScore;
-          if (consecutiveCorrect > score || (isTimerRunning && existingTime < timer)) {
-            setHighScores((prevHighScores) => ({
-              ...prevHighScores,
-              [difficultyLevel]: {
-                score: consecutiveCorrect,
-                time: isTimerRunning ? timer : existingTime,
-              },
-            }));
+          const { score: existingScore, time: existingTime } = selectedHighScore;
+          if (score > existingScore || (score === existingScore && time < existingTime)) {
+            parsedHighScores[difficultyLevel] = {
+              score,
+              time,
+            };
+            await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
+            setHighScores(parsedHighScores);
           }
         } else {
-          setHighScores((prevHighScores) => ({
-            ...prevHighScores,
-            [difficultyLevel]: {
-              score: consecutiveCorrect,
-              time: isTimerRunning ? timer : 0,
-            },
-          }));
+          parsedHighScores[difficultyLevel] = {
+            score,
+            time,
+          };
+          await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
+          setHighScores(parsedHighScores);
         }
       }
     } catch (error) {
       console.log('Error retrieving high scores:', error);
     }
-  };  
+  };
   
-  const startNewGame = (selectedDifficultyLevel) => {
+  const startNewGame = async (selectedDifficultyLevel) => {
     setDifficultyLevel(selectedDifficultyLevel);
+  
+    try {
+      const storedHighScores = await AsyncStorage.getItem('highScores');
+      if (storedHighScores !== null) {
+        const parsedHighScores = JSON.parse(storedHighScores);
+        const currentHighScore = parsedHighScores[selectedDifficultyLevel];
+        if (
+          currentHighScore &&
+          (consecutiveCorrect > currentHighScore.score ||
+            (consecutiveCorrect === currentHighScore.score && timer < currentHighScore.time))
+        ) {
+          parsedHighScores[selectedDifficultyLevel] = {
+            score: consecutiveCorrect,
+            time: timer,
+          };
+          await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
+          setHighScores(parsedHighScores);
+        } else {
+          setHighScores(parsedHighScores);
+        }
+      }
+    } catch (error) {
+      console.log('Error retrieving high scores:', error);
+    }
+  
     const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
     startTimer();
@@ -182,7 +205,7 @@ const FindTheBallGame = () => {
     setTimeout(() => {
       setShowBall(false);
     }, 1000);
-  };
+  };  
 
   const generateRandomCups = (difficultyLevel) => {
     const difficultyLevels = {easy: 3, normal: 4, hard: 5, expert: 6};
