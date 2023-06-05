@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 
 const FindTheBallGame = () => {
-  // Define our state variables
   const [cups, setCups] = useState(['', '', '']);
   const [showSubtitle, setShowSubtitle] = useState(true);
   const [showBall, setShowBall] = useState(false);
@@ -24,13 +23,13 @@ const FindTheBallGame = () => {
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerInterval, setTimerInterval] = useState(null);
+  const [storedHighScores, setStoredHighScores] = useState(null);
 
   useEffect(() => {
     if (gameOver && timerInterval) {
       clearInterval(timerInterval);
     }
 
-    // Update the high score comparison when the timer changes
     if (difficultyLevel && isTimerRunning) {
       const currentHighScore = highScores[difficultyLevel];
       if (
@@ -44,9 +43,35 @@ const FindTheBallGame = () => {
             time: timer,
           },
         }));
+        saveHighScore(difficultyLevel, consecutiveCorrect, timer);
       }
     }
-  }, [gameOver, timer, timerInterval, difficultyLevel, consecutiveCorrect, isTimerRunning, highScores]); 
+  }, [
+    gameOver,
+    timer,
+    timerInterval,
+    difficultyLevel,
+    consecutiveCorrect,
+    isTimerRunning,
+    highScores,
+  ]);
+
+  useEffect(() => {
+    fetchStoredHighScores();
+  }, []);
+
+  const fetchStoredHighScores = async () => {
+    try {
+      const storedHighScores = await AsyncStorage.getItem('highScores');
+      if (storedHighScores) {
+        const parsedHighScores = JSON.parse(storedHighScores);
+        setStoredHighScores(parsedHighScores);
+        setHighScores(parsedHighScores);
+      }
+    } catch (error) {
+      console.log('Error retrieving high scores:', error);
+    }
+  };  
 
   const startTimer = () => {
     if (!isTimerRunning) {
@@ -59,8 +84,7 @@ const FindTheBallGame = () => {
     } else {
       setIsTimerRunning(false);
       clearInterval(timerInterval);
-  
-      // Set the timer score
+
       if (
         consecutiveCorrect > highScores[difficultyLevel]?.score ||
         timer < highScores[difficultyLevel]?.time
@@ -78,16 +102,16 @@ const FindTheBallGame = () => {
         saveHighScore(difficultyLevel, consecutiveCorrect, timer);
       }
     }
-  };  
-  
+  };
+
   const handleCupPress = async (index) => {
     if (gameOver) {
-      return; // Disable cup press functionality when the game is over
+      return;
     }
-    // Win or Lose logic
+
     if (cups[index]) {
       const newConsecutiveCorrect = consecutiveCorrect + 1;
-  
+
       if (newConsecutiveCorrect > highScores[difficultyLevel]?.score) {
         setHighScores((prevHighScores) => ({
           ...prevHighScores,
@@ -96,7 +120,7 @@ const FindTheBallGame = () => {
             time: isTimerRunning ? timer : highScores[difficultyLevel]?.time,
           },
         }));
-  
+
         try {
           await saveHighScore(difficultyLevel, newConsecutiveCorrect, isTimerRunning ? timer : highScores[difficultyLevel]?.time);
         } catch (error) {
@@ -104,18 +128,18 @@ const FindTheBallGame = () => {
         }
       }
 
-      setConsecutiveCorrect(newConsecutiveCorrect);  
+      setConsecutiveCorrect(newConsecutiveCorrect);
       setShowBall(true);
       setResult(`🏆Congratulations! You found the ball in cup ${index + 1}!`);
       setCups((prevCups) => {
         const newCups = [...prevCups];
-        newCups[ballIndex] = false; // set the value of cups[ballIndex] to false to hide the ball
+        newCups[ballIndex] = false;
         newCups[index] = true;
-        setBallIndex(newCups.indexOf(true)); // set the ball index to the index of the cup with the ball
+        setBallIndex(newCups.indexOf(true));
         return newCups;
       });
       setTimeout(() => {
-        const newCups = generateRandomCups(difficultyLevel); // Generate new cups with a random ball index
+        const newCups = generateRandomCups(difficultyLevel);
         setCups(newCups);
         setBallIndex(newCups.indexOf(true));
         setShowBall(false);
@@ -125,10 +149,9 @@ const FindTheBallGame = () => {
       const newCups = cups.map((cup, i) => (i === ballIndex ? true : false));
       newCups[ballIndex] = true;
       setCups(newCups);
-      setGameOver(true); // Set the game over flag to true
-      setIsTimerRunning(false); // Stop the timer
-      clearInterval(timerInterval); // Clear the timer interval
-      // Show the ball for 1 second before hiding it
+      setGameOver(true);
+      setIsTimerRunning(false);
+      clearInterval(timerInterval);
       setShowBall(true);
       setTimeout(() => {
         setShowBall(false);
@@ -138,61 +161,24 @@ const FindTheBallGame = () => {
 
   const saveHighScore = async (difficultyLevel, score, time) => {
     try {
-      const storedHighScores = await AsyncStorage.getItem('highScores');
-      if (storedHighScores !== null) {
-        const parsedHighScores = JSON.parse(storedHighScores);
-        const selectedHighScore = parsedHighScores[difficultyLevel];
-        if (selectedHighScore) {
-          const { score: existingScore, time: existingTime } = selectedHighScore;
-          if (score > existingScore || (score === existingScore && time < existingTime)) {
-            parsedHighScores[difficultyLevel] = {
-              score,
-              time,
-            };
-            await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
-            setHighScores(parsedHighScores);
-          }
-        } else {
-          parsedHighScores[difficultyLevel] = {
-            score,
-            time,
-          };
-          await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
-          setHighScores(parsedHighScores);
-        }
+      const parsedHighScores = storedHighScores || {};
+      if (
+        !parsedHighScores[difficultyLevel] ||
+        score > parsedHighScores[difficultyLevel].score ||
+        (score === parsedHighScores[difficultyLevel].score && time < parsedHighScores[difficultyLevel].time)
+      ) {
+        parsedHighScores[difficultyLevel] = { score, time };
+        await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
+        setStoredHighScores(parsedHighScores);
       }
     } catch (error) {
-      console.log('Error retrieving high scores:', error);
+      console.log('Error saving high scores:', error);
     }
   };
-  
-  const startNewGame = async (selectedDifficultyLevel) => {
+
+  const startNewGame = (selectedDifficultyLevel) => {
     setDifficultyLevel(selectedDifficultyLevel);
-  
-    try {
-      const storedHighScores = await AsyncStorage.getItem('highScores');
-      if (storedHighScores !== null) {
-        const parsedHighScores = JSON.parse(storedHighScores);
-        const currentHighScore = parsedHighScores[selectedDifficultyLevel];
-        if (
-          currentHighScore &&
-          (consecutiveCorrect > currentHighScore.score ||
-            (consecutiveCorrect === currentHighScore.score && timer < currentHighScore.time))
-        ) {
-          parsedHighScores[selectedDifficultyLevel] = {
-            score: consecutiveCorrect,
-            time: timer,
-          };
-          await AsyncStorage.setItem('highScores', JSON.stringify(parsedHighScores));
-          setHighScores(parsedHighScores);
-        } else {
-          setHighScores(parsedHighScores);
-        }
-      }
-    } catch (error) {
-      console.log('Error retrieving high scores:', error);
-    }
-  
+
     const newCups = generateRandomCups(selectedDifficultyLevel);
     setCups(newCups);
     startTimer();
@@ -205,36 +191,33 @@ const FindTheBallGame = () => {
     setTimeout(() => {
       setShowBall(false);
     }, 1000);
-  };  
+  };
 
   const generateRandomCups = (difficultyLevel) => {
-    const difficultyLevels = {easy: 3, normal: 4, hard: 5, expert: 6};
+    const difficultyLevels = { easy: 3, normal: 4, hard: 5, expert: 6 };
     const numberOfCups = difficultyLevels[difficultyLevel];
     const randomIndex = Math.floor(Math.random() * numberOfCups);
-    
+
     const newCups = new Array(numberOfCups).fill(false);
     newCups[randomIndex] = true;
     return newCups;
   };
-  
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Find the Ball Game</Text>
       {showSubtitle && (
-      <Text style={styles.subtitle}>
-        Choose a game level to start challenging your guessing game to find the ball.</Text>
+        <Text style={styles.subtitle}>
+          Choose a difficulty level to start your guessing game and find the ball.
+        </Text>
       )}
       <View style={styles.cupRow}>
-        {cups?.map((cup, index) => {
+        {cups.map((cup, index) => {
           const isBall = index === ballIndex;
           return (
             <TouchableOpacity key={index} onPress={() => handleCupPress(index)}>
               <Animatable.View style={[styles.cup]}>
-                {showBall && isBall ? (
-                  <Text>🟡</Text>
-                ) : (
-                  <Text>{cup}</Text>
-                )}
+                {showBall && isBall ? <Text>🟡</Text> : <Text>{cup}</Text>}
               </Animatable.View>
             </TouchableOpacity>
           );
@@ -258,9 +241,19 @@ const FindTheBallGame = () => {
       <View style={styles.resultRow}>
         <Text style={styles.resultText}>{result}</Text>
         <Text style={styles.resultText}>
-          High Score: {highScores[difficultyLevel]?.score} ({highScores[difficultyLevel]?.time} seconds)
+          Top High Score:{' '}
+          {storedHighScores && storedHighScores[difficultyLevel]
+            ? `${storedHighScores[difficultyLevel].score} (${storedHighScores[difficultyLevel].time} seconds)`
+            : ''}
+        </Text>
+        <Text style={styles.resultText}>
+          Consecutive High Score:{' '}
+          {highScores[difficultyLevel] ? `${highScores[difficultyLevel].score} (${highScores[difficultyLevel].time} seconds)` : ''}
         </Text>
         <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
+      </View>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerText}>Made with ❤️ by OpenAI and KimberlyAH</Text>
       </View>
     </View>
   );
@@ -346,5 +339,13 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 20,
     marginBottom: 10,
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 10,
+  },
+  footerText: {
+    fontSize: 14,
+    color: 'gray',
   },
 });
