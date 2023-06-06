@@ -274,13 +274,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   title: {
+    marginTop: 20,
     marginBottom: 80,
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    borderWidth: 3,
-    borderColor: 'yellow',
     backgroundColor: 'maroon',
   },
   subtitle: {
@@ -332,6 +331,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     margin: 5,
+    borderWidth: 2,
+    borderColor: 'black',
   },
   buttonText: {
     color: '#FFF',
