@@ -237,20 +237,25 @@ const FindTheBallGame = () => {
           <Text style={styles.buttonText}>Expert</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.resultText}>Time: {timer} seconds</Text>
       <View style={styles.resultRow}>
-        <Text style={styles.resultText}>{result}</Text>
-        <Text style={styles.resultText}>
-          Top High Score:{' '}
-          {storedHighScores && storedHighScores[difficultyLevel]
-            ? `${storedHighScores[difficultyLevel].score} (${storedHighScores[difficultyLevel].time} seconds)`
-            : ''}
-        </Text>
-        <Text style={styles.resultText}>
-          Consecutive High Score:{' '}
-          {highScores[difficultyLevel] ? `${highScores[difficultyLevel].score} (${highScores[difficultyLevel].time} seconds)` : ''}
-        </Text>
-        <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
+      <Text style={styles.resultText}>{result}</Text>
+        {difficultyLevel && (
+          <>
+            <Text style={styles.resultText}>
+              Top High Score:{' '}
+              {storedHighScores && storedHighScores[difficultyLevel]
+                ? `${storedHighScores[difficultyLevel].score} (${storedHighScores[difficultyLevel].time} seconds)`
+                : ''}
+            </Text>
+            <Text style={styles.resultText}>
+              Consecutive High Score:{' '}
+              {highScores[difficultyLevel]
+                ? `${highScores[difficultyLevel].score} (${highScores[difficultyLevel].time} seconds)`
+                : ''}
+            </Text>
+            <Text style={styles.resultText}>Consecutive Correct: {consecutiveCorrect}</Text>
+          </>
+        )}
       </View>
       <View style={styles.footerContainer}>
         <Text style={styles.footerText}>Made with ❤️ by OpenAI and KimberlyAH</Text>
