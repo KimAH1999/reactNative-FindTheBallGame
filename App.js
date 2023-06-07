@@ -67,6 +67,8 @@ const FindTheBallGame = () => {
         const parsedHighScores = JSON.parse(storedHighScores);
         setStoredHighScores(parsedHighScores);
         setHighScores(parsedHighScores);
+      } else {
+        setStoredHighScores({});
       }
     } catch (error) {
       console.log('Error retrieving high scores:', error);
@@ -161,7 +163,7 @@ const FindTheBallGame = () => {
 
   const saveHighScore = async (difficultyLevel, score, time) => {
     try {
-      const parsedHighScores = storedHighScores || {};
+      let parsedHighScores = storedHighScores || {};
       if (
         !parsedHighScores[difficultyLevel] ||
         score > parsedHighScores[difficultyLevel].score ||
@@ -174,7 +176,7 @@ const FindTheBallGame = () => {
     } catch (error) {
       console.log('Error saving high scores:', error);
     }
-  };
+  };  
 
   const startNewGame = (selectedDifficultyLevel) => {
     setDifficultyLevel(selectedDifficultyLevel);
@@ -240,7 +242,8 @@ const FindTheBallGame = () => {
       <View style={styles.resultRow}>
       <Text style={styles.resultText}>{result}</Text>
         {difficultyLevel && (
-          <>
+          <> 
+            <Text style={styles.resultText}>Time: {timer} seconds</Text>
             <Text style={styles.resultText}>
               Top High Score:{' '}
               {storedHighScores && storedHighScores[difficultyLevel]
