@@ -28,12 +28,40 @@ npm install
 ```
 
 ## Usage
+Demo Link: N/A
 
-demo
-  
+![indexHomePage](https://github.com/KimAH1999/reactNative-FindTheBallGame/assets/87666809/3784011f-6bd5-4548-b7cc-55792c968f5c)
+
+![startGame](https://github.com/KimAH1999/reactNative-FindTheBallGame/assets/87666809/31185f54-49d6-49da-a7d5-5d222654dd24)
+
+
+## License  
+
+MIT License
+
+Copyright (c) [2023] [Kimberly Aguilar Hermoso]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 ## Contributing
 
-Available to be reached through Linkedin, Slack, and personal email which is available at my Github profile description.
+Available to be reached through Gmail/Linkdin/Slack, resources located at [MyPortfolio](https://kimah1999.github.io/MyPortfolio/) webpage.
 
 ## Tests
 
